@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { computeStandings } from "@/lib/tournament";
 
 export const Route = createFileRoute("/projector")({ component: Projector });
 
@@ -134,8 +135,6 @@ function Screen({ screen, current, next, last, callMatch, announcement, wall, te
     const groups = [...new Set(matches.filter((m: any) => m.group_name).map((m: any) => m.group_name))];
     if (groups.length === 0) return <Empty title="Brak grup" text="" />;
     const g = groups[0] as string;
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { computeStandings } = require("@/lib/tournament");
     const st = computeStandings(teams, matches, g);
     return (
       <div className="text-center w-full max-w-4xl">

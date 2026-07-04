@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TurniejRouteImport } from './routes/turniej'
 import { Route as TablicaRouteImport } from './routes/tablica'
+import { Route as ProjectorRouteImport } from './routes/projector'
 import { Route as MojaPostacRouteImport } from './routes/moja-postac'
 import { Route as GoscieRouteImport } from './routes/goscie'
 import { Route as GaleriaRouteImport } from './routes/galeria'
@@ -24,6 +25,11 @@ const TurniejRoute = TurniejRouteImport.update({
 const TablicaRoute = TablicaRouteImport.update({
   id: '/tablica',
   path: '/tablica',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjectorRoute = ProjectorRouteImport.update({
+  id: '/projector',
+  path: '/projector',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MojaPostacRoute = MojaPostacRouteImport.update({
@@ -52,6 +58,7 @@ export interface FileRoutesByFullPath {
   '/galeria': typeof GaleriaRoute
   '/goscie': typeof GoscieRoute
   '/moja-postac': typeof MojaPostacRoute
+  '/projector': typeof ProjectorRoute
   '/tablica': typeof TablicaRoute
   '/turniej': typeof TurniejRoute
 }
@@ -60,6 +67,7 @@ export interface FileRoutesByTo {
   '/galeria': typeof GaleriaRoute
   '/goscie': typeof GoscieRoute
   '/moja-postac': typeof MojaPostacRoute
+  '/projector': typeof ProjectorRoute
   '/tablica': typeof TablicaRoute
   '/turniej': typeof TurniejRoute
 }
@@ -69,6 +77,7 @@ export interface FileRoutesById {
   '/galeria': typeof GaleriaRoute
   '/goscie': typeof GoscieRoute
   '/moja-postac': typeof MojaPostacRoute
+  '/projector': typeof ProjectorRoute
   '/tablica': typeof TablicaRoute
   '/turniej': typeof TurniejRoute
 }
@@ -79,16 +88,25 @@ export interface FileRouteTypes {
     | '/galeria'
     | '/goscie'
     | '/moja-postac'
+    | '/projector'
     | '/tablica'
     | '/turniej'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/galeria' | '/goscie' | '/moja-postac' | '/tablica' | '/turniej'
+  to:
+    | '/'
+    | '/galeria'
+    | '/goscie'
+    | '/moja-postac'
+    | '/projector'
+    | '/tablica'
+    | '/turniej'
   id:
     | '__root__'
     | '/'
     | '/galeria'
     | '/goscie'
     | '/moja-postac'
+    | '/projector'
     | '/tablica'
     | '/turniej'
   fileRoutesById: FileRoutesById
@@ -98,6 +116,7 @@ export interface RootRouteChildren {
   GaleriaRoute: typeof GaleriaRoute
   GoscieRoute: typeof GoscieRoute
   MojaPostacRoute: typeof MojaPostacRoute
+  ProjectorRoute: typeof ProjectorRoute
   TablicaRoute: typeof TablicaRoute
   TurniejRoute: typeof TurniejRoute
 }
@@ -116,6 +135,13 @@ declare module '@tanstack/react-router' {
       path: '/tablica'
       fullPath: '/tablica'
       preLoaderRoute: typeof TablicaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projector': {
+      id: '/projector'
+      path: '/projector'
+      fullPath: '/projector'
+      preLoaderRoute: typeof ProjectorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/moja-postac': {
@@ -154,6 +180,7 @@ const rootRouteChildren: RootRouteChildren = {
   GaleriaRoute: GaleriaRoute,
   GoscieRoute: GoscieRoute,
   MojaPostacRoute: MojaPostacRoute,
+  ProjectorRoute: ProjectorRoute,
   TablicaRoute: TablicaRoute,
   TurniejRoute: TurniejRoute,
 }
