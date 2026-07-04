@@ -9,8 +9,38 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TurniejRouteImport } from './routes/turniej'
+import { Route as TablicaRouteImport } from './routes/tablica'
+import { Route as MojaPostacRouteImport } from './routes/moja-postac'
+import { Route as GoscieRouteImport } from './routes/goscie'
+import { Route as GaleriaRouteImport } from './routes/galeria'
 import { Route as IndexRouteImport } from './routes/index'
 
+const TurniejRoute = TurniejRouteImport.update({
+  id: '/turniej',
+  path: '/turniej',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TablicaRoute = TablicaRouteImport.update({
+  id: '/tablica',
+  path: '/tablica',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MojaPostacRoute = MojaPostacRouteImport.update({
+  id: '/moja-postac',
+  path: '/moja-postac',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GoscieRoute = GoscieRouteImport.update({
+  id: '/goscie',
+  path: '/goscie',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GaleriaRoute = GaleriaRouteImport.update({
+  id: '/galeria',
+  path: '/galeria',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +49,96 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/galeria': typeof GaleriaRoute
+  '/goscie': typeof GoscieRoute
+  '/moja-postac': typeof MojaPostacRoute
+  '/tablica': typeof TablicaRoute
+  '/turniej': typeof TurniejRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/galeria': typeof GaleriaRoute
+  '/goscie': typeof GoscieRoute
+  '/moja-postac': typeof MojaPostacRoute
+  '/tablica': typeof TablicaRoute
+  '/turniej': typeof TurniejRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/galeria': typeof GaleriaRoute
+  '/goscie': typeof GoscieRoute
+  '/moja-postac': typeof MojaPostacRoute
+  '/tablica': typeof TablicaRoute
+  '/turniej': typeof TurniejRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/galeria'
+    | '/goscie'
+    | '/moja-postac'
+    | '/tablica'
+    | '/turniej'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/galeria' | '/goscie' | '/moja-postac' | '/tablica' | '/turniej'
+  id:
+    | '__root__'
+    | '/'
+    | '/galeria'
+    | '/goscie'
+    | '/moja-postac'
+    | '/tablica'
+    | '/turniej'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  GaleriaRoute: typeof GaleriaRoute
+  GoscieRoute: typeof GoscieRoute
+  MojaPostacRoute: typeof MojaPostacRoute
+  TablicaRoute: typeof TablicaRoute
+  TurniejRoute: typeof TurniejRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/turniej': {
+      id: '/turniej'
+      path: '/turniej'
+      fullPath: '/turniej'
+      preLoaderRoute: typeof TurniejRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tablica': {
+      id: '/tablica'
+      path: '/tablica'
+      fullPath: '/tablica'
+      preLoaderRoute: typeof TablicaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/moja-postac': {
+      id: '/moja-postac'
+      path: '/moja-postac'
+      fullPath: '/moja-postac'
+      preLoaderRoute: typeof MojaPostacRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/goscie': {
+      id: '/goscie'
+      path: '/goscie'
+      fullPath: '/goscie'
+      preLoaderRoute: typeof GoscieRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/galeria': {
+      id: '/galeria'
+      path: '/galeria'
+      fullPath: '/galeria'
+      preLoaderRoute: typeof GaleriaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,6 +151,11 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  GaleriaRoute: GaleriaRoute,
+  GoscieRoute: GoscieRoute,
+  MojaPostacRoute: MojaPostacRoute,
+  TablicaRoute: TablicaRoute,
+  TurniejRoute: TurniejRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
