@@ -14,7 +14,350 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      announcement_comments: {
+        Row: {
+          announcement_id: string
+          content: string
+          created_at: string
+          guest_id: string | null
+          id: string
+        }
+        Insert: {
+          announcement_id: string
+          content: string
+          created_at?: string
+          guest_id?: string | null
+          id?: string
+        }
+        Update: {
+          announcement_id?: string
+          content?: string
+          created_at?: string
+          guest_id?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcement_comments_announcement_id_fkey"
+            columns: ["announcement_id"]
+            isOneToOne: false
+            referencedRelation: "announcements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "announcement_comments_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      announcements: {
+        Row: {
+          content: string
+          created_at: string
+          created_by_admin: boolean
+          id: string
+          pinned: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          created_by_admin?: boolean
+          id?: string
+          pinned?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          created_by_admin?: boolean
+          id?: string
+          pinned?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      app_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
+      guests: {
+        Row: {
+          attendance_status: string
+          avatar_type: string
+          avatar_url: string | null
+          claimed_at: string | null
+          claimed_by_session_id: string | null
+          created_at: string
+          display_name: string
+          id: string
+          is_tournament_player: boolean
+          updated_at: string
+          wanted_for: string
+        }
+        Insert: {
+          attendance_status?: string
+          avatar_type?: string
+          avatar_url?: string | null
+          claimed_at?: string | null
+          claimed_by_session_id?: string | null
+          created_at?: string
+          display_name: string
+          id?: string
+          is_tournament_player?: boolean
+          updated_at?: string
+          wanted_for?: string
+        }
+        Update: {
+          attendance_status?: string
+          avatar_type?: string
+          avatar_url?: string | null
+          claimed_at?: string | null
+          claimed_by_session_id?: string | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          is_tournament_player?: boolean
+          updated_at?: string
+          wanted_for?: string
+        }
+        Relationships: []
+      }
+      party_photos: {
+        Row: {
+          caption: string | null
+          created_at: string
+          file_url: string
+          guest_id: string | null
+          id: string
+          is_hidden: boolean
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          file_url: string
+          guest_id?: string | null
+          id?: string
+          is_hidden?: boolean
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          file_url?: string
+          guest_id?: string | null
+          id?: string
+          is_hidden?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "party_photos_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projector_state: {
+        Row: {
+          current_screen: string
+          id: string
+          last_call_to_table_match_id: string | null
+          mode: string
+          rotation_interval_seconds: number
+          selected_announcement_id: string | null
+          selected_match_id: string | null
+          sound_enabled: boolean
+          updated_at: string
+        }
+        Insert: {
+          current_screen?: string
+          id?: string
+          last_call_to_table_match_id?: string | null
+          mode?: string
+          rotation_interval_seconds?: number
+          selected_announcement_id?: string | null
+          selected_match_id?: string | null
+          sound_enabled?: boolean
+          updated_at?: string
+        }
+        Update: {
+          current_screen?: string
+          id?: string
+          last_call_to_table_match_id?: string | null
+          mode?: string
+          rotation_interval_seconds?: number
+          selected_announcement_id?: string | null
+          selected_match_id?: string | null
+          sound_enabled?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      teams: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          player_1_guest_id: string | null
+          player_2_guest_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          player_1_guest_id?: string | null
+          player_2_guest_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          player_1_guest_id?: string | null
+          player_2_guest_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teams_player_1_guest_id_fkey"
+            columns: ["player_1_guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teams_player_2_guest_id_fkey"
+            columns: ["player_2_guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tournament_matches: {
+        Row: {
+          created_at: string
+          group_name: string | null
+          id: string
+          next_match_id: string | null
+          phase: string
+          scheduled_order: number
+          score_a: number
+          score_b: number
+          status: string
+          team_a_id: string | null
+          team_b_id: string | null
+          updated_at: string
+          winner_team_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          group_name?: string | null
+          id?: string
+          next_match_id?: string | null
+          phase?: string
+          scheduled_order?: number
+          score_a?: number
+          score_b?: number
+          status?: string
+          team_a_id?: string | null
+          team_b_id?: string | null
+          updated_at?: string
+          winner_team_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          group_name?: string | null
+          id?: string
+          next_match_id?: string | null
+          phase?: string
+          scheduled_order?: number
+          score_a?: number
+          score_b?: number
+          status?: string
+          team_a_id?: string | null
+          team_b_id?: string | null
+          updated_at?: string
+          winner_team_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournament_matches_team_a_id_fkey"
+            columns: ["team_a_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournament_matches_team_b_id_fkey"
+            columns: ["team_b_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournament_matches_winner_team_id_fkey"
+            columns: ["winner_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wall_posts: {
+        Row: {
+          content: string
+          created_at: string
+          guest_id: string | null
+          id: string
+          is_hidden: boolean
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          guest_id?: string | null
+          id?: string
+          is_hidden?: boolean
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          guest_id?: string | null
+          id?: string
+          is_hidden?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wall_posts_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
