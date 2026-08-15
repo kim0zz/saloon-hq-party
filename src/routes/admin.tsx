@@ -280,90 +280,141 @@ for (let roundIndex = 0; roundIndex < maxRounds; roundIndex++) {
   };
 
   const generatePlayoff = async () => {
-    const groups = [...new Set(matches.filter((m) => m.phase === "group" && m.group_name).map((m) => m.group_name!))];
-    if (groups.length === 0) { toast.error("Brak grup"); return; }
-    const advanced: string[] = [];
+  const groups = [
+    ...new Set(
+      matches
+        .filter((m) => m.phase === "group" && m.group_name)
+        .map((m) => m.group_name!)
+    ),
+  ].sort();
+
+  if (groups.length !== 4) {
+    toast.error("Playoff wymaga dokładnie 4 grup");
+    return;
+  }
+
+  const quarterfinals = matches
+    .filter((m) => m.phase === "quarterfinal")
+    .sort((a, b) => a.scheduled_order - b.scheduled_order);
+
+  const semifinals = matches
+    .filter((m) => m.phase === "semifinal")
+    .sort((a, b) => a.scheduled_order - b.scheduled_order);
+
+  const finals = matches.filter((m) => m.phase === "final");
+
+  // ETAP 1: tworzymy ćwierćfinały
+  if (quarterfinals.length === 0) {
+    const standingsByGroup: Record<string, any[]> = {};
+
     for (const g of groups) {
       const st = computeStandings(teams as any, matches as any, g);
-      st.slice(0, 2).forEach((s) => advanced.push(s.team_id));
-    }
-    if (advanced.length < 2) { toast.error("Zbyt mało band"); return; }
-    // simple bracket: pair first from A with second from B etc.
-    await supabase.from("tournament_matches").delete().neq("phase", "group");
-    let order = 1000;
-    const inserts: any[] = [];
-    if (advanced.length === 4) {
-      inserts.push({ phase: "semifinal", team_a_id: advanced[0], team_b_id: advanced[3], scheduled_order: order++ });
-      inserts.push({ phase: "semifinal", team_a_id: advanced[1], team_b_id: advanced[2], scheduled_order: order++ });
-      inserts.push({ phase: "final", scheduled_order: order + 10 });
-    } else {
-      for (let i = 0; i < advanced.length; i += 2) {
-        if (advanced[i + 1]) inserts.push({ phase: "knockout", team_a_id: advanced[i], team_b_id: advanced[i + 1], scheduled_order: order++ });
+
+      if (st.length < 2) {
+        toast.error(`Za mało band w grupie ${g}`);
+        return;
       }
+
+      standingsByGroup[g] = st;
     }
+
+    const [A, B, C, D] = groups;
+
+    const inserts = [
+      {
+        phase: "quarterfinal",
+        team_a_id: standingsByGroup[A][0].team_id, // A1
+        team_b_id: standingsByGroup[B][1].team_id, // B2
+        scheduled_order: 1000,
+      },
+      {
+        phase: "quarterfinal",
+        team_a_id: standingsByGroup[B][0].team_id, // B1
+        team_b_id: standingsByGroup[A][1].team_id, // A2
+        scheduled_order: 1001,
+      },
+      {
+        phase: "quarterfinal",
+        team_a_id: standingsByGroup[C][0].team_id, // C1
+        team_b_id: standingsByGroup[D][1].team_id, // D2
+        scheduled_order: 1002,
+      },
+      {
+        phase: "quarterfinal",
+        team_a_id: standingsByGroup[D][0].team_id, // D1
+        team_b_id: standingsByGroup[C][1].team_id, // C2
+        scheduled_order: 1003,
+      },
+    ];
+
     await supabase.from("tournament_matches").insert(inserts);
-    refresh(); toast.success("Bracket gotowy");
-  };
 
-  const resetAll = async () => {
-    if (!confirm("Reset całego turnieju?")) return;
-    await supabase.from("tournament_matches").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-    await supabase.from("teams").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-    refresh(); toast.success("Reset");
-  };
+    refresh();
+    toast.success("Ćwierćfinały gotowe!");
+    return;
+  }
 
-  return (
-    <div className="space-y-4">
-      <section className="parchment rounded-lg p-4">
-        <h2 className="font-display text-xl mb-2">Gracze turnieju ({players.length})</h2>
-        <div className="text-xs text-muted-foreground mb-2">Zaznacz graczy w zakładce Goście.</div>
-        <ul className="text-sm mb-3">{players.map((p) => <li key={p.id}>• {p.display_name}</li>)}</ul>
-        <button onClick={generateTeams} className="btn-saloon px-4 py-2 rounded mr-2">Losuj bandy 2-osobowe</button>
-      </section>
+  // ETAP 2: po rozegraniu QF tworzymy półfinały
+  if (semifinals.length === 0) {
+    if (
+      quarterfinals.length !== 4 ||
+      quarterfinals.some(
+        (m) => m.status !== "finished" || !m.winner_team_id
+      )
+    ) {
+      toast.error("Najpierw zakończ wszystkie 4 ćwierćfinały");
+      return;
+    }
 
-      <section className="parchment rounded-lg p-4">
-        <h2 className="font-display text-xl mb-2">Bandy ({teams.length})</h2>
-        <ul className="text-sm">{teams.map((t: any) => <li key={t.id}>• <b>{t.name}</b> — {t.p1?.display_name ?? "?"} & {t.p2?.display_name ?? "?"}</li>)}</ul>
-        <div className="mt-3 flex gap-2 items-center flex-wrap">
-          <label className="text-sm">Liczba grup:</label>
-          <input type="number" min={1} max={4} value={numGroups} onChange={(e) => setNumGroups(+e.target.value)}
-            className="w-16 border rounded p-1" />
-          <button onClick={generateGroups} className="btn-saloon px-3 py-1 rounded text-sm">Generuj grupy + terminarz</button>
-          <button onClick={generatePlayoff} className="btn-saloon px-3 py-1 rounded text-sm">Playoff z grup</button>
-          <button onClick={resetAll} className="bg-blood text-parchment px-3 py-1 rounded text-sm font-display">Reset turnieju</button>
-        </div>
-      </section>
+    const inserts = [
+      {
+        phase: "semifinal",
+        team_a_id: quarterfinals[0].winner_team_id,
+        team_b_id: quarterfinals[1].winner_team_id,
+        scheduled_order: 1100,
+      },
+      {
+        phase: "semifinal",
+        team_a_id: quarterfinals[2].winner_team_id,
+        team_b_id: quarterfinals[3].winner_team_id,
+        scheduled_order: 1101,
+      },
+    ];
 
-      <section className="parchment rounded-lg p-4">
-        <h2 className="font-display text-xl mb-2">Mecze</h2>
-        {matches.length === 0 && <p className="italic text-muted-foreground">Brak.</p>}
-        <ul className="space-y-2">
-          {matches.map((m) => (
-            <li key={m.id} className="border border-wood-dark/30 rounded p-2 text-sm">
-              <div className="font-display">
-                {m.phase === "group" ? `[${m.group_name}] ` : `[${m.phase}] `}
-                {teamName(m.team_a_id)} vs {teamName(m.team_b_id)}
-              </div>
-              <div className="flex flex-wrap gap-2 mt-1 items-center">
-                <input type="number" value={m.score_a} onChange={(e) => setScore(m.id, +e.target.value, m.score_b)} className="w-14 border rounded p-1" />
-                <span>:</span>
-                <input type="number" value={m.score_b} onChange={(e) => setScore(m.id, m.score_a, +e.target.value)} className="w-14 border rounded p-1" />
-                <select value={m.status} onChange={(e) => setStatus(m.id, e.target.value)} className="border rounded p-1">
-                  <option value="scheduled">scheduled</option>
-                  <option value="called">called</option>
-                  <option value="in_progress">in_progress</option>
-                  <option value="finished">finished</option>
-                </select>
-                <button onClick={() => callToTable(m.id)} className="btn-saloon px-2 py-1 rounded text-xs">CALL TO TABLE</button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </section>
-    </div>
-  );
-}
+    await supabase.from("tournament_matches").insert(inserts);
 
+    refresh();
+    toast.success("Półfinały gotowe!");
+    return;
+  }
+
+  // ETAP 3: po rozegraniu SF tworzymy finał
+  if (finals.length === 0) {
+    if (
+      semifinals.length !== 2 ||
+      semifinals.some(
+        (m) => m.status !== "finished" || !m.winner_team_id
+      )
+    ) {
+      toast.error("Najpierw zakończ oba półfinały");
+      return;
+    }
+
+    await supabase.from("tournament_matches").insert({
+      phase: "final",
+      team_a_id: semifinals[0].winner_team_id,
+      team_b_id: semifinals[1].winner_team_id,
+      scheduled_order: 1200,
+    });
+
+    refresh();
+    toast.success("WIELKI FINAŁ GOTOWY!");
+    return;
+  }
+
+  toast.success("Cała drabinka playoff już istnieje");
+};
+  
 /* -------------------- PROJECTOR CONTROL -------------------- */
 function ProjectorAdmin() {
   const qc = useQueryClient();
