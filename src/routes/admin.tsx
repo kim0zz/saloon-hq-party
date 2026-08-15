@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { isAdminUnlocked, lockAdmin, tryAdminPin } from "@/lib/admin";
 import { AVATAR_PRESETS } from "@/lib/avatars";
 import { randomWanted, WANTED_SUGGESTIONS } from "@/lib/wanted";
-import { computeStandings, roundRobinPairs, shuffle } from "@/lib/tournament";
+import { computeStandings, shuffle } from "@/lib/tournament";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin")({ component: Admin });
@@ -192,13 +192,64 @@ function TourneyAdmin() {
       const g = String.fromCharCode(65 + (i % numGroups));
       (groups[g] ||= []).push(t);
     });
-    const inserts: any[] = [];
-    let order = 0;
-    for (const [g, ts] of Object.entries(groups)) {
-      for (const [a, b] of roundRobinPairs(ts)) {
-        inserts.push({ phase: "group", group_name: g, team_a_id: a.id, team_b_id: b.id, scheduled_order: order++ });
-      }
+    const makeRounds = (ts: any[]) => {
+  const arr: (any | null)[] = [...ts];
+
+  if (arr.length % 2 === 1) arr.push(null);
+
+  const rounds: Array<Array<[any, any]>> = [];
+
+  for (let r = 0; r < arr.length - 1; r++) {
+    const round: Array<[any, any]> = [];
+
+    for (let i = 0; i < arr.length / 2; i++) {
+      const a = arr[i];
+      const b = arr[arr.length - 1 - i];
+
+      if (a && b) round.push([a, b]);
     }
+
+    rounds.push(round);
+
+    const last = arr.pop()!;
+    arr.splice(1, 0, last);
+  }
+
+  return rounds;
+};
+
+const groupRounds = Object.entries(groups).map(([g, ts]) => ({
+  group: g,
+  rounds: makeRounds(ts),
+}));
+
+const inserts: any[] = [];
+let order = 0;
+
+const maxRounds = Math.max(...groupRounds.map((x) => x.rounds.length));
+
+for (let roundIndex = 0; roundIndex < maxRounds; roundIndex++) {
+  const maxMatchesInRound = Math.max(
+    ...groupRounds.map((x) => x.rounds[roundIndex]?.length ?? 0)
+  );
+
+  for (let matchIndex = 0; matchIndex < maxMatchesInRound; matchIndex++) {
+    for (const gr of groupRounds) {
+      const pair = gr.rounds[roundIndex]?.[matchIndex];
+      if (!pair) continue;
+
+      const [a, b] = pair;
+
+      inserts.push({
+        phase: "group",
+        group_name: gr.group,
+        team_a_id: a.id,
+        team_b_id: b.id,
+        scheduled_order: order++,
+      });
+    }
+  }
+}
     if (inserts.length) await supabase.from("tournament_matches").insert(inserts);
     refresh(); toast.success(`${inserts.length} pojedynków w grupach`);
   };
