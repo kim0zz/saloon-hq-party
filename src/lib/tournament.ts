@@ -18,13 +18,32 @@ export function computeStandings(teams: Team[], matches: Match[], group?: string
   const filtered = matches.filter(
     (m) => m.phase === "group" && m.status === "finished" && (!group || m.group_name === group),
   );
-  const bag = new Map<string, Standing>();
-  for (const t of teams) {
-    bag.set(t.id, {
-      team_id: t.id, played: 0, wins: 0, losses: 0,
-      goals_for: 0, goals_against: 0, goal_diff: 0, points: 0,
-    });
-  }
+  const groupTeamIds = new Set<string>();
+
+for (const m of matches) {
+  if (m.phase !== "group") continue;
+  if (group && m.group_name !== group) continue;
+
+  if (m.team_a_id) groupTeamIds.add(m.team_a_id);
+  if (m.team_b_id) groupTeamIds.add(m.team_b_id);
+}
+
+const bag = new Map<string, Standing>();
+
+for (const t of teams) {
+  if (group && !groupTeamIds.has(t.id)) continue;
+
+  bag.set(t.id, {
+    team_id: t.id,
+    played: 0,
+    wins: 0,
+    losses: 0,
+    goals_for: 0,
+    goals_against: 0,
+    goal_diff: 0,
+    points: 0,
+  });
+}
   for (const m of filtered) {
     if (!m.team_a_id || !m.team_b_id) continue;
     const a = bag.get(m.team_a_id); const b = bag.get(m.team_b_id);
